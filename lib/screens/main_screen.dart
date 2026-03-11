@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/movie.dart';
 import 'home_screens.dart';
 import 'search_screen.dart';
 import 'favorite_screen.dart';
@@ -15,11 +16,35 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const SearchScreen(),
-    const FavoriteScreen(),
-  ];
+  final List<Movie> _favoriteMovies = [];
+
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const HomeScreen(),
+      SearchScreen(onToggleFavorite: _toggleFavorite, favoriteMovies: _favoriteMovies),
+      FavoriteScreen(favoriteMovies: _favoriteMovies, onRemoveFavorite: _removeFavorite),
+    ];
+  }
+
+  void _toggleFavorite(Movie movie) {
+    setState(() {
+      if (_favoriteMovies.contains(movie)) {
+        _favoriteMovies.remove(movie);
+      } else {
+        _favoriteMovies.add(movie);
+      }
+    });
+  }
+
+  void _removeFavorite(Movie movie) {
+    setState(() {
+      _favoriteMovies.remove(movie);
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {

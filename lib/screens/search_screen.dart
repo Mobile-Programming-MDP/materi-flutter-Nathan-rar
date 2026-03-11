@@ -1,23 +1,25 @@
-
 import 'package:flutter/material.dart';
-import 'package:pilem/models/movie.dart';
-import 'package:pilem/screens/detail_screen.dart';
-import 'package:pilem/services/api_services.dart';
+import '../services/api_services.dart';
+import '../models/movie.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  const SearchScreen({super.key, required this.onToggleFavorite, required this.favoriteMovies});
+
+  final void Function(Movie) onToggleFavorite;
+  final List<Movie> favoriteMovies;
+
   @override
-  SearchScreenState createState() => SearchScreenState();
+  State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends State<SearchScreen> {
   final ApiService _apiService = ApiService();
   final TextEditingController _searchController = TextEditingController();
   List<Movie> _searchResults = [];
+
   @override
   void initState() {
     super.initState();
-    _searchController.addListener(_searchMovies);
   }
 
   @override
@@ -27,17 +29,25 @@ class SearchScreenState extends State<SearchScreen> {
   }
 
   void _searchMovies() async {
-    if (_searchController.text.isEmpty) {
-      setState(() {
-        _searchResults.clear();
-      });
-      return;
+    final query = _searchController.text;
+    if (query.isNotEmpty) {
+      try {
+        final results = await _apiService.searchMovies(query);
+        setState(() {
+          _searchResults = results;
+        });
+      } catch (e) {
+        print('Error searching movies: $e');
+        // Show snackbar or dialog with error
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
-    final List<Map<String, dynamic>> searchData =
-        await _apiService.searchMovies(_searchController.text);
-    setState(() {
-      _searchResults = searchData.map((e) => Movie.fromJson(e)).toList();
-    });
+  }
+
+  void _toggleFavorite(Movie movie) {
+    widget.onToggleFavorite(movie);
   }
 
   @override
@@ -46,76 +56,62 @@ class SearchScreenState extends State<SearchScreen> {
       appBar: AppBar(
         title: const Text('Search'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.grey,
-                  width: 1.0,
+      body: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    hintText: 'Search movies...',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(5.0),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        hintText: 'Search movies...',
-                        border: InputBorder.none,
-                      ),
+              IconButton(
+                onPressed: _searchMovies,
+                icon: const Icon(Icons.search),
+              ),
+            ],
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) {
+                final movie = _searchResults[index];
+                return ListTile(
+                  leading: movie.posterPath.isNotEmpty
+                      ? Image.network(
+                          'https://image.tmdb.org/t/p/w92${movie.posterPath}',
+                          width: 50,
+                          height: 75,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported),
+                        )
+                      : const Icon(Icons.image_not_supported),
+                  title: Text(movie.title),
+                  subtitle: Text(
+                    movie.overview.length > 100
+                        ? '${movie.overview.substring(0, 100)}...'
+                        : movie.overview,
+                  ),
+                  trailing: IconButton(
+                    onPressed: () => _toggleFavorite(movie),
+                    icon: Icon(
+                      widget.favoriteMovies.contains(movie) ? Icons.favorite : Icons.favorite_border,
+                      color: Colors.red,
                     ),
                   ),
-                  Visibility(
-                    visible: _searchController.text.isNotEmpty,
-                    child: IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() {
-                          _searchResults.clear();
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
+                  onTap: () {
+                    // Navigate to detail screen
+                  },
+                );
+              },
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _searchResults.length,
-                itemBuilder: (context, index) {
-                  final Movie movie = _searchResults[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: ListTile(
-                      leading: Image.network(
-                        'https://image.tmdb.org/t/p/w500${movie.posterPath}',
-                        height: 50,
-                        width: 50,
-                        fit: BoxFit.cover,
-                      ),
-                      title: Text(movie.title),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => DetailScreen(movie: movie),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

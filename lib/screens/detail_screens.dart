@@ -42,29 +42,13 @@ class _DetailScreenState extends State<DetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Stack(
-              children: [
-                Image.network(
-                  'https://via.placeholder.com/300x200',
-                  width: 300,
-                  height: 200,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.favorite,
-                      color: Colors.red,
-                    ),
-                    onPressed: _toggleFavorite,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
             Text('Favorite: $_isFavorite'),
+            IconButton(
+              icon: Icon(
+                _isFavorite ? Icons.favorite : Icons.favorite_border,
+              ),
+              onPressed: _toggleFavorite,
+            ),
           ],
         ),
       ),

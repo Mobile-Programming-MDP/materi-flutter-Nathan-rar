@@ -1,117 +1,30 @@
-
 import 'package:flutter/material.dart';
-import 'package:pilem/models/movie.dart';
-import 'package:pilem/screens/detail_screens.dart';
-import 'package:pilem/services/api_services.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final ApiService _apiService = ApiService();
-
-  List<Movie> _allMovies = [];
-  List<Movie> _trendingMovies = [];
-  List<Movie> _popularMovies = [];
-
-  Future<void> _loadMovies() async {
-    final List<Movie> allMoviesData = await _apiService.getAllMovies();
-    final List<Movie> trendingMoviesData =
-        await _apiService.getTrendingMovies();
-    final List<Movie> popularMoviesData =
-        await _apiService.getPopularMovies();
-
-    setState(() {
-      _allMovies = allMoviesData;
-      _trendingMovies = trendingMoviesData;
-      _popularMovies = popularMoviesData;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadMovies();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Pilem"),
+        title: const Text('Home'),
       ),
-      body: SingleChildScrollView(
+      body: const Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildMoviesList("All Movies", _allMovies),
-            _buildMoviesList("Trending Movies", _trendingMovies),
-            _buildMoviesList("Popular Movies", _popularMovies),
+            Text(
+              'Welcome to Pilem!',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Discover and search for your favorite movies.',
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildMoviesList(String title, List<Movie> movies) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Menampilkan Title Kategori Movies
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        //Menapilkan thumnail dan judul movies
-        SizedBox(
-          height: 200,
-          child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: movies.length,
-              itemBuilder: (BuildContext build, int index) {
-                final Movie movie = movies[index];
-                return GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DetailScreen(movie: movie),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Image.network(
-                          "https://image.tmdb.org/t/p/w500${movie.posterPath}",
-                          width: 100,
-                          height: 150,
-                          fit: BoxFit.cover,
-                        ),
-                        Text(
-                          movie.title.length > 14
-                              ? '${movie.title.substring(0, 10)}...'
-                              : movie.title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-        )
-      ],
     );
   }
 }
