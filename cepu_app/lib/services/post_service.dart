@@ -48,7 +48,7 @@ class PostService {
 
   static Stream<List<Post>> getPostList() {
     return _postsCollection.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
+      return snapshot.docs.map<Post>((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Post(
           id: doc.id,
@@ -77,7 +77,7 @@ class PostService {
       query = query.where('category', isEqualTo: category);
     }
     return query.snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
+      return snapshot.docs.map<Post>((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         return Post(
           id: doc.id,

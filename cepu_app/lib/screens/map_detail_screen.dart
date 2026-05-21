@@ -15,8 +15,23 @@ class MapDetailScreen extends StatefulWidget {
 class _MapDetailScreenState extends State<MapDetailScreen> {
   @override
   Widget build(BuildContext context) {
-    final lat = double.tryParse(widget.post.latitude ?? '');
-    final lng = double.tryParse(widget.post.longitude ?? '');
+    String latStr = '';
+    String lngStr = '';
+    
+    if (widget.post.latitude is String) {
+      latStr = widget.post.latitude as String;
+    } else if (widget.post.latitude != null) {
+      latStr = widget.post.latitude.toString();
+    }
+    
+    if (widget.post.longitude is String) {
+      lngStr = widget.post.longitude as String;
+    } else if (widget.post.longitude != null) {
+      lngStr = widget.post.longitude.toString();
+    }
+    
+    final lat = double.tryParse(latStr);
+    final lng = double.tryParse(lngStr);
     final hasLocation = lat != null && lng != null;
     final point = hasLocation ? LatLng(lat, lng) : const LatLng(0, 0);
     return Scaffold(
